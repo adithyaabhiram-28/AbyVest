@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>
+        {% if title %}
+            {{ title }}
+        {% else %}
+            AbyVest AI
+        {% endif %}
+    </title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+<body>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="flash {{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+    {% if current_user.is_authenticated %}
+        <div class="app-container">
+            <aside class="sidebar">
+                <a href="/" class="brand-lockup" aria-label="AbyVest AI home">
+                    <img src="{{ url_for('static', filename='brand/abyvest-ai-logo-transparent.png') }}" alt="AbyVest AI" class="brand-logo">
+                </a>
+                <div class="sidebar-profile">
+                    <img src="{{ current_user.image_file }}" alt="Profile" class="sidebar-pic">
+                    <span>{{ current_user.username }}</span>
+                </div>
+                <nav>
+                    <a href="/">Home</a>
+                    <a href="/stock/buy">Buy Stock</a>
+                    <a href="/chat">AI Assistant</a>
+                    <a href="/account">Account</a>
+                    <a href="/about">About</a>
+                    <a href="/logout">Logout</a>
+                </nav>
+            </aside>
+            <main class="main-content">
+                <header class="topbar">
+                    <div class="ticker" id="market-ticker">
+                        Loading live market data...
+                    </div>
+                </header>
+                <div class="content-area">
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+        </div>
+    {% else %}
+        <div class="auth-container">
+            {% block auth_content %}{% endblock %}
+        </div>
+    {% endif %}
+    <script>
+
+    async function loadMarketTicker() {
+
+        try {
+
+            const response = await fetch('/market-data')
+
+            const data = await response.json()
+
+            let html = 'MARKET LIVE | '
+
+            data.forEach(stock => {
+
+                const positive = stock.change >= 0
+
+                const color = positive
+                    ? '#00e5c0'
+                    : '#ff5c7a'
+
+                const sign = positive
+                    ? '+'
+                    : ''
+
+                html += `
+                    <span style="color:${color}; margin-right:18px;">
+                        ${stock.symbol}: ${sign}${stock.change}%
+                    </span>
+                `
+            })
+
+            document.getElementById('market-ticker').innerHTML = html
+
+        } catch {
+
+            document.getElementById('market-ticker').innerHTML =
+                'Unable to load live market data.'
+        }
+    }
+
+    loadMarketTicker()
+
+    setInterval(loadMarketTicker, 30000)
+
+    </script>
+</body>
+</html>

@@ -1,0 +1,35 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Buy New Stock</h2>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.symbol.label() }}
+                    {{ form.symbol(class="form-control", placeholder="e.g., MSFT") }}
+                </div>
+                <div class="form-group">
+                    {{ form.shares.label() }}
+                    {{ form.shares(class="form-control", placeholder="e.g., 5") }}
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.purchase_price.label() }}
+                        {{ form.purchase_price(class="form-control", placeholder="e.g., 150.50") }}
+                    </div>
+                    <div class="form-group">
+                        {{ form.purchase_date.label() }}
+                        {{ form.purchase_date(class="form-control", type="date") }}
+                    </div>
+                </div>
+                {{ form.submit(class="btn btn-full") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

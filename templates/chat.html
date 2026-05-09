@@ -1,0 +1,112 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>AI Investment Assistant</h2>
+            <form action="/chat/clear" method="POST" id="clear-form">
+                <button class="btn-sm btn-danger" type="submit">Clear History</button>
+            </form>
+        </div>
+            <div class="chat-messages" id="chat-messages">
+                {% if not chat_history %}
+                <div class="message ai-message">
+                    <div class="bubble">Hello! I am Finley, your personalized AI assistant. I can see your live portfolio data. Ask me anything about your stocks, market trends, or how to balance your positions!</div>
+                </div>
+                {% else %}
+                    {% for msg in chat_history %}
+                    <div class="message {{ msg.role }}-message">
+                        <div class="bubble">{{ msg.content | safe }}</div>
+                    </div>
+                    {% endfor %}
+                {% endif %}
+            </div>
+        <div class="quick-chips">
+            <button class="chip" onclick="sendQuickPrompt('Should I buy more of my top stock?')">Should I buy more of my top stock?</button>
+            <button class="chip" onclick="sendQuickPrompt('Analyze my portfolio risk')">Analyze my portfolio risk</button>
+            <button class="chip" onclick="sendQuickPrompt('What are the hottest stocks right now?')">Hottest stocks right now?</button>
+            <button class="chip" onclick="sendQuickPrompt('Which of my stocks should I sell?')">Which stocks should I sell?</button>
+        </div>
+        <form id="chat-form" class="chat-input-area">
+            <input type="text" id="user-input" placeholder="Ask Finley about your portfolio..." autocomplete="off" required>
+            <button type="submit" class="btn">Send</button>
+        </form>
+    </div>
+
+    <script>
+        const chatForm = document.getElementById('chat-form')
+        const userInput = document.getElementById('user-input')
+        const chatMessages = document.getElementById('chat-messages')
+        const clearForm = document.getElementById('clear-form')
+
+        chatForm.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            const message = userInput.value.trim()
+            if(!message) return
+            appendMessage(message, 'user-message')
+            userInput.value = ''
+            await getAIResponse(message)
+        })
+
+        clearForm.addEventListener('submit', async (e) => {
+            e.preventDefault()
+            chatMessages.innerHTML = ''
+            try {
+                await fetch('/chat/clear', {method : 'POST'})
+            }
+            catch(err){
+                console.error(err)
+            }
+        })
+
+        function sendQuickPrompt(text){
+            userInput.value = text
+            chatForm.dispatchEvent(new Event('submit'))
+        }
+
+        function appendMessage(text, role){
+            const div = document.createElement('div')
+            div.className = `message ${role}-message`
+            div.innerHTML = `<div class="bubble">${text}</div>`
+            chatMessages.appendChild(div)
+            scrollToBottom()
+        }
+
+        function showTypingIndicator() {
+        const div = document.createElement('div');
+        div.className = 'message ai-message';
+        div.id = 'typing-indicator';
+        div.innerHTML = `<div class="bubble typing-dots"><span></span><span></span><span></span></div>`;
+        chatMessages.appendChild(div);
+        scrollToBottom();
+    }
+
+    function removeTypingIndicator() {
+        const indicator = document.getElementById('typing-indicator')
+        if(indicator) indicator.remove()
+    }
+
+    async function getAIResponse(message) {
+        showTypingIndicator()
+        try{
+            const res = await fetch('/chat/api',{
+                method : 'POST',
+                headers : {'Content-Type' : 'application/json'},
+                body : JSON.stringify({message})
+            })
+            const data = await res.json()
+            removeTypingIndicator()
+            appendMessage(data.reply, 'ai')
+        }
+        catch(err){
+            removeTypingIndicator()
+            appendMessage('Error connecting to Finley.', 'ai')
+        }
+    }
+
+    function scrollToBottom(){
+        chatMessages.scrollTop = chatMessages.scrollHeight
+    }
+    </script>
+
+{% endblock %}

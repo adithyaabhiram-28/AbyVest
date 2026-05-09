@@ -1,0 +1,77 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <div class="dashboard-header">
+        <h1>Portfolio Dashboard</h1>
+    </div>
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-label">Total Invested</span>
+            <span class="stat-value">${{ "{:,.2f}".format(total_invested) }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Current Value</span>
+            <span class="stat-value">${{ "{:,.2f}".format(current_value) }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Total Gain/Loss</span>
+            <span class="stat-value {{ 'gain' if gain_loss > 0 else 'loss' }}">${{ "{:,.2f}".format(gain_loss) }}</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Return %</span>
+            <span class="stat-value {{ 'gain' if gain_loss_percent > 0 else 'loss' }}">{{ '+' if gain_loss_percent > 0 else '' }}{{ "{:,.2f}".format(gain_loss_percent) }}%</span>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Your Stocks</h2>
+            <a href="/stock/buy" class="btn">Buy Stock</a>
+        </div>
+
+        {% if stocks %}
+        <table class="stock-table">
+            <thead>
+                <tr>
+                    <th>Symbol</th>
+                    <th>Company</th>
+                    <th>Shares</th>
+                    <th>Buy Price</th>
+                    <th>Current Price</th>
+                    <th>Invested</th>
+                    <th>Current Value</th>
+                    <th>Gain/Loss</th>
+                    <th>Return %</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for stock in stocks %}
+                <tr>
+                    <td class="symbol">{{ stock.symbol }}</td>
+                    <td>{{ stock.company_name }}</td>
+                    <td>{{ stock.shares }}</td>
+                    <td>${{ "{:,.2f}".format(stock.purchase_price) }}</td>
+                    <td>${{ "{:,.2f}".format(stock.current_price) }}</td>
+                    <td>${{ "{:,.2f}".format(stock.total_invested) }}</td>
+                    <td>${{ "{:,.2f}".format(stock.current_value) }}</td>
+                    <td class="{{ 'gain' if stock.gain_loss > 0 else 'loss' }}">${{ "{:,.2f}".format(stock.gain_loss) }}</td>
+                    <td class="{{ 'gain' if stock.gain_loss_percent > 0 else 'loss' }}">{{ '+' if stock.gain_loss_percent > 0 else '' }}{{ "{:,.2f}".format(stock.gain_loss_percent) }}%</td>
+                    <td>
+                        <a href="/stock/{{ stock.id }}" class="btn-sm">View</a>
+                        <form action="/stock/{{ stock.id }}/delete" method="POST" style="display: inline;">
+                            <button type="submit" class="btn-sm btn-danger">X</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <p>You don't have any stocks yet.</p>
+            <a href="/stock/buy" class="btn">Buy Your First Stock</a>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

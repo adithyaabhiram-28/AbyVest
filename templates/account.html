@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="form-container">
+    <div class="card">
+        <div class="card-header">
+            <h2>Account Settings</h2>
+        </div>
+        <div class="card-body profile-section">
+            
+            <!-- Profile Picture -->
+            <div class="profile-pic-wrapper">
+                <img src="{{ image_file }}" alt="Profile Picture" class="profile-pic">
+            </div>
+            
+            <!-- Update Form -->
+            <form method="POST" action="" enctype="multipart/form-data">
+                {{ form.hidden_tag() }}
+                <div class="form-group">
+                    {{ form.username.label() }}
+                    {{ form.username(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.email.label() }}
+                    {{ form.email(class="form-control") }}
+                </div>
+                <div class="form-group">
+                    {{ form.picture.label() }}
+                    {{ form.picture(class="form-control") }}
+                </div>
+                {{ form.submit(class="btn btn-full") }}
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

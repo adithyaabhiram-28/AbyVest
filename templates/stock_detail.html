@@ -1,0 +1,95 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="detail-header">
+    <a href="/" class="btn-sm">← Back to Dashboard</a>
+    <div class="detail-title">
+        <h1>{{ stock.symbol }}</h1>
+        <span class="text-muted">{{ stock.company_name }}</span>
+    </div>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <span class="stat-label">Shares Owned</span>
+        <span class="stat-value">{{ stock.shares }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Buy Price</span>
+        <span class="stat-value">${{ "{:.2f}".format(stock.purchase_price) }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Current Price</span>
+        <span class="stat-value">${{ "{:.2f}".format(stock.current_price) }}</span>
+    </div>
+    <div class="stat-card">
+        <span class="stat-label">Your Return</span>
+        <span class="stat-value {{ 'gain' if stock.gain_loss >= 0 else 'loss' }}">
+            {{ '+' if stock.gain_loss_percent >= 0 else '' }}{{ "{:.2f}".format(stock.gain_loss_percent) }}%
+        </span>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h2>Company Information</h2>
+        <form action="/stock/{{ stock.id }}/delete" method="POST" style="margin:0;">
+            <button type="submit" class="btn-danger" onclick="return confirm('Are you sure you want to delete this stock?');">Delete Stock</button>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="text-muted">Sector:</span> <strong>{{ info.sector }}</strong>
+            </div>
+            <div class="info-item">
+                <span class="text-muted">Industry:</span> <strong>{{ info.industry }}</strong>
+            </div>
+            <div class="info-item">
+                <span class="text-muted">52W High:</span> 
+                <strong class="gain">
+                    {% if info.fifty_two_week_high and info.fifty_two_week_high != 'N/A' %}
+                        ${{ "%.2f"|format(info.fifty_two_week_high) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </strong>
+            </div>
+            <div class="info-item">
+                <span class="text-muted">52W Low:</span> 
+                <strong class="loss">
+                    {% if info.fifty_two_week_low and info.fifty_two_week_low != 'N/A' %}
+                        ${{ "%.2f"|format(info.fifty_two_week_low) }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                </strong>
+            </div>
+        </div>
+        <hr style="border-color: var(--border); margin: 1.5rem 0;">
+        <p class="description-text">{{ info.description }}</p>
+    </div>
+</div>
+<div class="card sell-card">
+    <div class="card-header">
+        <h2>Sell Shares</h2>
+    </div>
+    <div class="card-body">
+        <p class="text-muted sell-info">
+            You currently own <span class="strong-text">{{ stock.shares }} shares</span> of {{ stock.symbol }}.
+        </p>
+        <form method="POST" action="/stock/{{ stock.id }}/sell">
+            {{ form.hidden_tag() }}
+            <div class="form-row">
+                <div class="form-group">
+                    {{ form.shares_to_sell.label() }}
+                    {{ form.shares_to_sell(class="form-control", min="1", max=stock.shares, placeholder="e.g. 5") }}
+                </div>
+                <div class="form-group-submit">
+                    {{ form.submit(class="btn btn-danger") }}
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
