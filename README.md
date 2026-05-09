@@ -46,22 +46,6 @@ AbyVest/
 `-- instance/              # Local SQLite database location
 ```
 
-## Environment Variables
-
-Create a `.env` file in the project root for local development:
-
-```env
-SECRET_KEY=your-secret-key
-DATABASE_URL=sqlite:///site.db
-FINNHUB_API_KEY=your-finnhub-api-key
-GENAI_API_KEY=your-google-gemini-api-key
-CLOUDINARY_CLOUD_NAME=your-cloudinary-cloud-name
-CLOUDINARY_API_KEY=your-cloudinary-api-key
-CLOUDINARY_API_SECRET=your-cloudinary-api-secret
-```
-
-`DATABASE_URL` is optional for local development because the app defaults to `sqlite:///site.db`.
-
 ## Local Setup
 
 1. Clone the repository and move into the project folder.
@@ -96,7 +80,6 @@ pip install -r requirements.txt
 ```
 
 4. Add your `.env` file with the required API keys.
-
 5. Start the app.
 
 ```bash
