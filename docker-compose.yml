@@ -1,0 +1,27 @@
+services:
+  app:
+    build: .
+    container_name: abyvest-app
+    ports:
+      - "2005:2005"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: "#Ath2005"
+      POSTGRES_DB: smartstocktracker
+    ports:
+      - "5432:5432"
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+volumes:
+  redis_data:

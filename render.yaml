@@ -33,8 +33,19 @@ services:
         fromDatabase:
           name: smart-stock-db
           property: connectionString
+      
+      - key: REDIS_URL
+        fromService:
+          name: abyvest-redis
+          type: redis
+          property: internalConnectionUri
 
 databases:
   - name: smart-stock-db
     databaseName: smartstocktracker
     plan: free
+
+redis:
+  - name: abyvest-redis
+    plan: starter
+    maxmemoryPolicy: noeviction

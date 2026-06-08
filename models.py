@@ -1,10 +1,7 @@
-from flask_sqlalchemy import SQLAlchemy
+from extensions import db
 from flask_login import UserMixin
 from datetime import datetime, timezone
-import os
-import finnhub
-
-db = SQLAlchemy()
+from services import get_finnhub_quote
 
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -30,12 +27,10 @@ class Stock(db.Model):
 
     @property
     def current_price(self):
-        try:
-            finnhub_client = finnhub.Client(api_key=os.getenv('FINNHUB_API_KEY'))
-            quote = finnhub_client.quote(symbol=self.symbol)
-            return quote.get('c', self.purchase_price)
-        except:
-            return self.purchase_price
+        quote = get_finnhub_quote(self.symbol)
+        if quote and quote.get('c'):
+            return quote['c']
+        return self.purchase_price
         
     @property
     def total_invested(self):
