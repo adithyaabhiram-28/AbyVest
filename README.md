@@ -46,16 +46,126 @@ AbyVest/
 `-- instance/              # Local SQLite database location
 ```
 
-## Local Setup
+## New Device Setup
 
-1. Clone the repository and move into the project folder.
+These steps are the recommended way to run AbyVest on a new laptop or desktop using Docker.
+
+### Prerequisites
+
+- Git
+- Docker Desktop
+
+### 1. Clone the repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/adithyaabhiram-28/AbyVest.git
 cd AbyVest
 ```
 
-2. Create and activate a virtual environment.
+### 2. Create the `.env` file
+
+Create a `.env` file in the project root and add the required values:
+
+```env
+SECRET_KEY=your_secret_key_here
+DATABASE_URL=postgresql://postgres:your_encoded_password@postgres:5432/smartstocktracker
+REDIS_URL=redis://redis:6379
+FINNHUB_API_KEY=your_finnhub_api_key_here
+GENAI_API_KEY=your_gemini_api_key_here
+CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
+CLOUDINARY_API_KEY=your_cloudinary_api_key
+CLOUDINARY_API_SECRET=your_cloudinary_api_secret
+```
+
+Important notes:
+
+- The app currently reads `GENAI_API_KEY` for Gemini, so use that variable name in `.env`.
+- If your PostgreSQL password contains special characters such as `#`, URL-encode them in `DATABASE_URL`. Example: `#Ath2005` becomes `%23Ath2005`.
+
+### 3. Start all services
+
+```bash
+docker compose up -d
+```
+
+This starts:
+
+- `abyvest-app`
+- `abyvest-postgres-1`
+- `abyvest-redis-1`
+
+### 4. Create the database tables
+
+At the moment, table creation is still a manual one-time step when using Docker.
+
+Open a Python shell inside the app container:
+
+```bash
+docker exec -it abyvest-app python
+```
+
+Then run:
+
+```python
+from app import create_app
+from extensions import db
+
+app = create_app()
+
+with app.app_context():
+    db.create_all()
+```
+
+Exit Python when finished:
+
+```python
+exit()
+```
+
+### 5. Open the application
+
+```text
+http://localhost:2005
+```
+
+## Daily Usage
+
+### Start AbyVest
+
+```bash
+cd AbyVest
+docker compose up -d
+```
+
+### Check that containers are running
+
+```bash
+docker ps
+```
+
+You should see containers similar to:
+
+- `abyvest-app`
+- `abyvest-postgres-1`
+- `abyvest-redis-1`
+
+### Open the application
+
+```text
+http://localhost:2005
+```
+
+### Stop AbyVest
+
+```bash
+docker compose down
+```
+
+## Local Python Setup
+
+If you want to run the app without Docker, you can still use a normal Python environment.
+
+1. Create and activate a virtual environment.
 
 ```bash
 python -m venv venv
@@ -73,14 +183,14 @@ On macOS/Linux:
 source venv/bin/activate
 ```
 
-3. Install dependencies.
+2. Install dependencies.
 
 ```bash
 pip install -r requirements.txt
 ```
 
-4. Add your `.env` file with the required API keys.
-5. Start the app.
+3. Add your `.env` file.
+4. Start the app.
 
 ```bash
 python app.py
