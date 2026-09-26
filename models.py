@@ -3,27 +3,40 @@ from flask_login import UserMixin
 from datetime import datetime, timezone
 from services import get_finnhub_quote
 
+
 class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(20), unique=True, nullable=False)
     email = db.Column(db.String(120), unique=True, nullable=False)
     password = db.Column(db.String(60), nullable=False)
-    image_file = db.Column(db.String(500), nullable=False, default='https://res.cloudinary.com/ds74jszcl/image/upload/c_fill,g_face,w_300,h_300/v1777964984/default_vlnm6j.jpg')
+    image_file = db.Column(
+        db.String(500),
+        nullable=False,
+        default=(
+            'https://res.cloudinary.com/ds74jszcl/image/upload/'
+            'c_fill,g_face,w_300,h_300/v1777964984/default_vlnm6j.jpg'
+        ),
+    )
 
-    stocks = db.relationship('Stock', backref='owner', lazy=True)
-    messages = db.relationship('ChatMessage', backref='author', lazy=True)
+    stocks = db.relationship(
+        'Stock', backref='owner', lazy=True, cascade='all, delete-orphan'
+    )
+    messages = db.relationship(
+        'ChatMessage', backref='author', lazy=True, cascade='all, delete-orphan'
+    )
 
     def __repr__(self):
         return f"User('{self.username}', '{self.email}')"
-    
+
+
 class Stock(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    symbol = db.Column(db.String(10), nullable=False)
+    symbol = db.Column(db.String(10), nullable=False, index=True)
     company_name = db.Column(db.String(100), nullable=False)
     shares = db.Column(db.Integer, nullable=False)
     purchase_price = db.Column(db.Float, nullable=False)
     purchase_date = db.Column(db.Date, nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
 
     @property
     def current_price(self):
@@ -31,19 +44,19 @@ class Stock(db.Model):
         if quote and quote.get('c'):
             return quote['c']
         return self.purchase_price
-        
+
     @property
     def total_invested(self):
         return self.shares * self.purchase_price
-    
+
     @property
     def current_value(self):
         return self.shares * self.current_price
-    
+
     @property
     def gain_loss(self):
         return self.current_value - self.total_invested
-    
+
     @property
     def gain_loss_percent(self):
         if self.total_invested == 0:
@@ -52,10 +65,13 @@ class Stock(db.Model):
 
     def __repr__(self):
         return f"Stock('{self.symbol}', {self.shares} shares)"
-    
+
+
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False, index=True)
     role = db.Column(db.String(20), nullable=False)
     content = db.Column(db.Text, nullable=False)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.now(timezone.utc))
+    timestamp = db.Column(
+        db.DateTime, nullable=False, default=lambda: datetime.now(timezone.utc)
+    )

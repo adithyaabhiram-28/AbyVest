@@ -1,245 +1,250 @@
 # AbyVest AI
 
-AbyVest AI is a Flask-based portfolio management app for tracking stock holdings, viewing live market movement, and getting AI-assisted portfolio insights from Finley, the built-in investment assistant.
+AbyVest is a Flask-based AI stock portfolio management application. Track holdings, view live market data, and get portfolio-aware insights from Finley (Google Gemini).
 
-The project is intended as an educational stock analytics application. AI responses are informational only and should not be treated as professional financial advice.
+Educational use only — AI output is not professional financial advice.
 
 ## Features
 
 - User registration, login, logout, and account updates
 - Password hashing with Flask-Bcrypt
-- Portfolio dashboard with total invested value, current value, and gain/loss
-- Buy, sell, view, and remove stock holdings
-- Live stock quote and company data through Finnhub
+- Portfolio dashboard (invested value, current value, gain/loss)
+- Buy, sell, view, and delete stock holdings
+- Live quotes and company data via Finnhub (Redis-cached)
 - Market ticker for selected symbols
-- AI chat assistant powered by Google Gemini
-- Persistent chat history per user
-- Profile image uploads through Cloudinary
-- SQLite support for local development
-- PostgreSQL-ready deployment configuration for Render
+- AI chat assistant (Gemini) with per-user chat history
+- Profile image uploads via Cloudinary
+- PostgreSQL + Redis via Docker Compose
+- Flask-Migrate / Alembic schema migrations
+- Automated unit and functional tests (external APIs mocked)
+
+## Architecture
+
+```text
+Browser
+   │
+   ▼
+AbyVest (Flask + Gunicorn)  :2005
+   │
+   ├── PostgreSQL  :5432  (internal in production)
+   └── Redis       :6379  (internal in production)
+
+External APIs: Finnhub · Google Gemini · Cloudinary
+```
+
+Production (AWS EC2 recommended for this project):
+
+```text
+Internet → Nginx :80/:443 → Gunicorn → Flask
+                              ├── PostgreSQL (Docker, localhost only)
+                              └── Redis (Docker, localhost only)
+```
 
 ## Tech Stack
 
-- Python 3.12
-- Flask
-- Flask-SQLAlchemy
-- Flask-Login
-- Flask-WTF
-- Flask-Bcrypt
-- Finnhub API
-- Google Generative AI
-- Cloudinary
-- Gunicorn
-- SQLite locally, PostgreSQL on Render
+| Layer | Technology |
+|-------|------------|
+| Language | Python 3.12 |
+| Web | Flask, Flask-Login, Flask-WTF, Flask-Bcrypt |
+| ORM / migrations | Flask-SQLAlchemy, Flask-Migrate (Alembic) |
+| Cache | Redis |
+| Database | PostgreSQL 15 (SQLite OK for local non-Docker) |
+| APIs | Finnhub, Google Generative AI, Cloudinary |
+| Server | Gunicorn |
+| Containers | Docker, Docker Compose |
 
-## Project Structure
+## Folder Structure
 
 ```text
 AbyVest/
-+-- app.py                 # Main Flask application and routes
-+-- forms.py               # WTForms form definitions
-+-- models.py              # SQLAlchemy models
-+-- requirements.txt       # Python dependencies
-+-- render.yaml            # Render deployment configuration
-+-- templates/             # Jinja templates
-+-- static/                # CSS, logos, and profile image assets
-`-- instance/              # Local SQLite database location
+├── app.py                 # Application factory
+├── wsgi.py                # Gunicorn / Flask CLI entrypoint
+├── extensions.py          # db, bcrypt, login, migrate, csrf
+├── models.py              # User, Stock, ChatMessage
+├── services.py            # Finnhub + Redis caching
+├── forms.py               # WTForms
+├── routes/
+│   ├── auth.py
+│   ├── stocks.py
+│   └── chat.py
+├── templates/
+├── static/
+├── tests/
+├── migrations/            # Alembic migrations
+├── deploy/
+│   ├── nginx/abyvest.conf
+│   └── AWS_DEPLOYMENT.md
+├── Dockerfile
+├── docker-compose.yml
+├── docker-compose.dev.yml
+├── docker-compose.prod.yml
+├── entrypoint.sh          # migrate + gunicorn
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
-## New Device Setup
+## Environment Variables
 
-These steps are the recommended way to run AbyVest on a new laptop or desktop using Docker.
+Copy `.env.example` to `.env` and fill in values. **Never commit `.env`.**
 
-### Prerequisites
+| Variable | Purpose |
+|----------|---------|
+| `SECRET_KEY` | Flask sessions / CSRF (required) |
+| `FLASK_ENV` | Set `production` on deployed hosts |
+| `FLASK_DEBUG` | Keep `0` in production |
+| `POSTGRES_USER` | Postgres username |
+| `POSTGRES_PASSWORD` | Postgres password (quote if it contains `#`) |
+| `POSTGRES_DB` | Database name |
+| `DATABASE_URL` | SQLAlchemy URL — use host `postgres` inside Compose |
+| `REDIS_URL` | Redis URL — use host `redis` inside Compose |
+| `FINNHUB_API_KEY` | Finnhub quotes/profiles |
+| `GENAI_API_KEY` | Google Gemini |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary |
+| `CLOUDINARY_API_KEY` | Cloudinary |
+| `CLOUDINARY_API_SECRET` | Cloudinary |
 
-- Git
-- Docker Desktop
+Inside Docker Compose, prefer:
 
-### 1. Clone the repository
+```env
+DATABASE_URL=postgresql://postgres:YOUR_ENCODED_PASSWORD@postgres:5432/smartstocktracker
+REDIS_URL=redis://redis:6379
+```
+
+URL-encode special characters in passwords (example: `#` → `%23`).
+
+## Local Setup (Python)
+
+```bash
+python -m venv venv
+```
+
+Windows:
+
+```bash
+venv\Scripts\activate
+```
+
+macOS/Linux:
+
+```bash
+source venv/bin/activate
+```
+
+```bash
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Create `.env` (see `.env.example`). For non-Docker local runs you can use SQLite:
+
+```env
+DATABASE_URL=sqlite:///site.db
+REDIS_URL=redis://localhost:6379
+```
+
+```bash
+set FLASK_APP=wsgi:app
+flask db upgrade
+python app.py
+```
+
+App (debug only if `FLASK_DEBUG=1`): http://127.0.0.1:5000
+
+## Docker Setup
+
+Prerequisites: Git, Docker Desktop.
 
 ```bash
 git clone https://github.com/adithyaabhiram-28/AbyVest.git
 cd AbyVest
 ```
 
-### 2. Create the `.env` file
-
-Create a `.env` file in the project root and add the required values:
-
-```env
-SECRET_KEY=your_secret_key_here
-DATABASE_URL=postgresql://postgres:your_encoded_password@postgres:5432/smartstocktracker
-REDIS_URL=redis://redis:6379
-FINNHUB_API_KEY=your_finnhub_api_key_here
-GENAI_API_KEY=your_gemini_api_key_here
-CLOUDINARY_CLOUD_NAME=your_cloudinary_cloud_name
-CLOUDINARY_API_KEY=your_cloudinary_api_key
-CLOUDINARY_API_SECRET=your_cloudinary_api_secret
-```
-
-Important notes:
-
-- The app currently reads `GENAI_API_KEY` for Gemini, so use that variable name in `.env`.
-- If your PostgreSQL password contains special characters such as `#`, URL-encode them in `DATABASE_URL`. Example: `#Ath2005` becomes `%23Ath2005`.
-
-### 3. Start all services
+Create `.env` from `.env.example`.
 
 ```bash
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.yml -f docker-compose.dev.yml ps
 ```
 
-This starts:
+Open: http://localhost:2005
 
-- `abyvest-app`
-- `abyvest-postgres-1`
-- `abyvest-redis-1`
+Migrations run automatically via `entrypoint.sh` on container start.
 
-### 4. Create the database tables
+The base Compose file does **not** publish ports. The `dev` overlay publishes app `:2005` plus optional Postgres/Redis host ports for local tooling. The `prod` overlay binds the app to `127.0.0.1:2005` only and never publishes Postgres/Redis.
 
-At the moment, table creation is still a manual one-time step when using Docker.
-
-Open a Python shell inside the app container:
+Stop:
 
 ```bash
-docker exec -it abyvest-app python
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
 ```
 
-Then run:
-
-```python
-from app import create_app
-from extensions import db
-
-app = create_app()
-
-with app.app_context():
-    db.create_all()
-```
-
-Exit Python when finished:
-
-```python
-exit()
-```
-
-### 5. Open the application
-
-```text
-http://localhost:2005
-```
-
-## Daily Usage
-
-### Start AbyVest
+Production overlay:
 
 ```bash
-cd AbyVest
-docker compose up -d
+docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-### Check that containers are running
+## Database Migrations
 
 ```bash
-docker ps
+# Local
+set FLASK_APP=wsgi:app
+flask db migrate -m "Describe change"
+flask db upgrade
+
+# Inside Docker
+docker compose exec app flask db upgrade
 ```
 
-You should see containers similar to:
+Do not rely on `db.create_all()` for production schema management.
 
-- `abyvest-app`
-- `abyvest-postgres-1`
-- `abyvest-redis-1`
+## Redis
 
-### Open the application
+- Quote cache TTL: 60 seconds (`stock:SYMBOL`)
+- Profile cache TTL: 24 hours (`profile:SYMBOL`)
+- If Redis is down, the app continues and calls Finnhub directly (degraded mode)
 
-```text
-http://localhost:2005
-```
+## Tests
 
-### Stop AbyVest
+External APIs are mocked. No production keys required.
 
 ```bash
-docker compose down
+pytest -q
 ```
 
-## Local Python Setup
-
-If you want to run the app without Docker, you can still use a normal Python environment.
-
-1. Create and activate a virtual environment.
+Inside Docker:
 
 ```bash
-python -m venv venv
+docker compose exec app pytest -q
 ```
 
-On Windows:
+## Production Notes
 
-```bash
-venv\Scripts\activate
-```
+- `SECRET_KEY` is required (no insecure fallback)
+- Set `FLASK_ENV=production` (enables secure cookies)
+- Put Nginx in front of Gunicorn (see `deploy/nginx/abyvest.conf`)
+- Do not expose ports 5432 or 6379 publicly
+- Keep secrets in environment / `.env` outside the image
+- Rotate any credential that was ever committed to Git history
 
-On macOS/Linux:
+## External Services
 
-```bash
-source venv/bin/activate
-```
+| Service | Used for |
+|---------|----------|
+| Finnhub | Quotes and company profiles |
+| Google Gemini | Finley AI assistant |
+| Cloudinary | Profile pictures |
 
-2. Install dependencies.
+## Future Improvements
 
-```bash
-pip install -r requirements.txt
-```
+- Batch Finnhub calls on the dashboard (avoid N+1 property fetches)
+- Structured application logging
+- Optional rate limiting on `/chat/api`
+- Automated CI (GitHub Actions) for pytest + Docker build
 
-3. Add your `.env` file.
-4. Start the app.
+## AWS Deployment
 
-```bash
-python app.py
-```
+See [deploy/AWS_DEPLOYMENT.md](deploy/AWS_DEPLOYMENT.md) for the full EC2 + Docker + Nginx + HTTPS procedure.
 
-The development server will start at:
-
-```text
-http://127.0.0.1:5000
-```
-
-When run with `python app.py`, the app creates the database tables automatically using `db.create_all()`.
-
-## Usage
-
-1. Register a new account.
-2. Log in to access the dashboard.
-3. Add stocks from the Buy Stock page.
-4. View portfolio totals, current values, and gain/loss metrics.
-5. Open the AI Assistant page to ask Finley questions about your portfolio.
-6. Update account details and profile image from the Account page.
-
-## Deployment
-
-This project includes a `render.yaml` file for Render deployment.
-
-Render is configured to:
-
-- Install dependencies with `pip install -r requirements.txt`
-- Start the app with `gunicorn app:app`
-- Use Python `3.12.4`
-- Provision a PostgreSQL database named `smart-stock-db`
-- Read secrets from Render environment variables
-
-Before deploying, add these environment variables in Render:
-
-- `SECRET_KEY`
-- `GENAI_API_KEY`
-- `FINNHUB_API_KEY`
-- `CLOUDINARY_CLOUD_NAME`
-- `CLOUDINARY_API_KEY`
-- `CLOUDINARY_API_SECRET`
-- `DATABASE_URL`
-
-For production deployments, ensure database tables are created before serving traffic. The local `db.create_all()` block only runs when starting the app with `python app.py`, not when running through Gunicorn.
-
-## Notes
-
-- Do not commit `.env`, virtual environments, or local database files.
-- Finnhub API limits may affect live quote availability.
-- Gemini responses are saved in the database as chat history.
-- Stock market and AI outputs should be used for learning and research, not as financial advice.
+**Do not deploy until you have rotated any secrets that appeared in Git history or local logs.**

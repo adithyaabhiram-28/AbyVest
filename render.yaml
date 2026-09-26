@@ -5,11 +5,14 @@ services:
 
     buildCommand: pip install -r requirements.txt
 
-    startCommand: gunicorn app:app
+    startCommand: flask --app wsgi db upgrade && gunicorn wsgi:app
 
     envVars:
       - key: PYTHON_VERSION
         value: 3.12.4
+
+      - key: FLASK_APP
+        value: wsgi:app
 
       - key: SECRET_KEY
         sync: false
@@ -33,7 +36,7 @@ services:
         fromDatabase:
           name: smart-stock-db
           property: connectionString
-      
+
       - key: REDIS_URL
         fromService:
           name: abyvest-redis

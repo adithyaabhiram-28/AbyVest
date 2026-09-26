@@ -1,0 +1,19 @@
+# Local development host port mappings.
+# Usage (recommended local command):
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Or rely on Docker Compose auto-loading this file when renamed to
+# docker-compose.override.yml (not done here so prod overlays stay explicit).
+
+services:
+  app:
+    ports:
+      - "2005:2005"
+
+  postgres:
+    ports:
+      - "5432:5432"
+
+  redis:
+    ports:
+      - "6379:6379"

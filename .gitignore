@@ -1,4 +1,15 @@
 venv/
+.venv/
 .env
 __pycache__/
 *.pyc
+*.pyo
+.pytest_cache/
+.coverage
+htmlcov/
+instance/
+*.db
+.mypy_cache/
+.DS_Store
+.idea/
+.vscode/

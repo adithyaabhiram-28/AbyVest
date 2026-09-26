@@ -1,0 +1,21 @@
+# Production overlay for AWS EC2 (or similar).
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# - PostgreSQL / Redis: no host ports (not reachable from the internet via Docker publish)
+# - App: bound to 127.0.0.1:2005 only (Nginx on the host proxies to it)
+
+services:
+  app:
+    environment:
+      FLASK_ENV: production
+      FLASK_DEBUG: "0"
+    ports:
+      - "127.0.0.1:2005:2005"
+    restart: unless-stopped
+
+  postgres:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped

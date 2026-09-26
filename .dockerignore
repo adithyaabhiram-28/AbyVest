@@ -1,7 +1,12 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 .env
 .git
-site.db
+.pytest_cache/
 instance/
+*.db
+*.md
+.coverage
+htmlcov/
