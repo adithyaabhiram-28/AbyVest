@@ -4,7 +4,7 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2>AI Investment Assistant</h2>
-            <form action="/chat/clear" method="POST" id="clear-form">
+            <form action="{{ url_for('chat.clear_chat') }}" method="POST" id="clear-form">
                 <button class="btn-sm btn-danger" type="submit">Clear History</button>
             </form>
         </div>

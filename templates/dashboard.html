@@ -26,7 +26,7 @@
     <div class="card">
         <div class="card-header">
             <h2>Your Stocks</h2>
-            <a href="/stock/buy" class="btn">Buy Stock</a>
+            <a href="{{ url_for('stocks.buy_stock') }}" class="btn">Buy Stock</a>
         </div>
 
         {% if stocks %}
@@ -58,8 +58,8 @@
                     <td class="{{ 'gain' if stock.gain_loss > 0 else 'loss' }}">${{ "{:,.2f}".format(stock.gain_loss) }}</td>
                     <td class="{{ 'gain' if stock.gain_loss_percent > 0 else 'loss' }}">{{ '+' if stock.gain_loss_percent > 0 else '' }}{{ "{:,.2f}".format(stock.gain_loss_percent) }}%</td>
                     <td>
-                        <a href="/stock/{{ stock.id }}" class="btn-sm">View</a>
-                        <form action="/stock/{{ stock.id }}/delete" method="POST" style="display: inline;">
+                        <a href="{{ url_for('stocks.stock_detail', stock_id=stock.id) }}" class="btn-sm">View</a>
+                        <form action="{{ url_for('stocks.delete_stock', stock_id=stock.id) }}" method="POST" style="display: inline;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-sm btn-danger">X</button>
                         </form>
@@ -71,7 +71,7 @@
         {% else %}
         <div class="empty-state">
             <p>You don't have any stocks yet.</p>
-            <a href="/stock/buy" class="btn">Buy Your First Stock</a>
+            <a href="{{ url_for('stocks.buy_stock') }}" class="btn">Buy Your First Stock</a>
         </div>
         {% endif %}
     </div>

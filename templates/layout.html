@@ -24,7 +24,7 @@
     {% if current_user.is_authenticated %}
         <div class="app-container">
             <aside class="sidebar">
-                <a href="/" class="brand-lockup" aria-label="AbyVest AI home">
+                <a href="{{ url_for('auth.home') }}" class="brand-lockup" aria-label="AbyVest AI home">
                     <img src="{{ url_for('static', filename='brand/abyvest-ai-logo-transparent.png') }}" alt="AbyVest AI" class="brand-logo">
                 </a>
                 <div class="sidebar-profile">
@@ -32,12 +32,12 @@
                     <span>{{ current_user.username }}</span>
                 </div>
                 <nav>
-                    <a href="/">Home</a>
-                    <a href="/stock/buy">Buy Stock</a>
-                    <a href="/chat">AI Assistant</a>
-                    <a href="/account">Account</a>
-                    <a href="/about">About</a>
-                    <a href="/logout">Logout</a>
+                    <a href="{{ url_for('auth.home') }}">Home</a>
+                    <a href="{{ url_for('stocks.buy_stock') }}">Buy Stock</a>
+                    <a href="{{ url_for('chat.chat') }}">AI Assistant</a>
+                    <a href="{{ url_for('auth.account') }}">Account</a>
+                    <a href="{{ url_for('auth.about') }}">About</a>
+                    <a href="{{ url_for('auth.logout') }}">Logout</a>
                 </nav>
             </aside>
             <main class="main-content">
