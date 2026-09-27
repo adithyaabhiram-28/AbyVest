@@ -63,7 +63,7 @@
             e.preventDefault()
             chatMessages.innerHTML = ''
             try {
-                await fetch('/chat/clear', {
+                await fetch("{{ url_for('chat.clear_chat') }}", {
                     method: 'POST',
                     headers: csrfHeaders()
                 })
@@ -110,7 +110,7 @@
     async function getAIResponse(message) {
         showTypingIndicator()
         try{
-            const res = await fetch('/chat/api',{
+            const res = await fetch("{{ url_for('chat.chat_api') }}",{
                 method : 'POST',
                 headers : csrfHeaders({'Content-Type' : 'application/json'}),
                 body : JSON.stringify({message})

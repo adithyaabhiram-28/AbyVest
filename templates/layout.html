@@ -62,7 +62,7 @@
 
         try {
 
-            const response = await fetch('/market-data')
+            const response = await fetch("{{ url_for('stocks.market_data') }}")
 
             const data = await response.json()
 
