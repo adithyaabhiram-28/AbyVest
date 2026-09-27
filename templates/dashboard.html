@@ -60,6 +60,7 @@
                     <td>
                         <a href="/stock/{{ stock.id }}" class="btn-sm">View</a>
                         <form action="/stock/{{ stock.id }}/delete" method="POST" style="display: inline;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="btn-sm btn-danger">X</button>
                         </form>
                     </td>
