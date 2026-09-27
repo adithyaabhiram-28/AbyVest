@@ -4,8 +4,8 @@
 <div class="hero-card">
     <img src="{{ url_for('static', filename='brand/abyvest-ai-logo-transparent.png') }}" alt="AbyVest AI" class="hero-logo">
     <p>Manage your portfolio with real-time AI insights.</p>
-    <a href="/register" class="btn">Get Started</a>
-    <a href="/login" class="btn btn-outline">Login</a>
+    <a href="{{ url_for('auth.register') }}" class="btn">Get Started</a>
+    <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Login</a>
 </div>
 
 {% endblock %}
