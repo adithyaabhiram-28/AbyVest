@@ -1,5 +1,6 @@
 import os
 from flask import Flask, render_template
+from werkzeug.middleware.proxy_fix import ProxyFix
 from dotenv import load_dotenv
 import cloudinary
 
@@ -24,6 +25,7 @@ def _normalize_database_url(url: str) -> str:
 
 def create_app(config_overrides=None):
     app = Flask(__name__)
+    app.wsgi_app = ProxyFix(app.wsgi_app, x_prefix=1)
 
     secret_key = os.getenv('SECRET_KEY')
     if not secret_key:
